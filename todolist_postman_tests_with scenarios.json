@@ -1,0 +1,543 @@
+{
+	"info": {
+		"_postman_id": "5a64cad8-4ee5-47b4-891c-bfdf7e09fc84",
+		"name": "Todoist",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22646252"
+	},
+	"item": [
+		{
+			"name": "User can create new project",
+			"item": [
+				{
+					"name": "User creates a new project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Project has correct name\", function () {\r",
+									"    // jsonData stores created project details\r",
+									"    var createdProject = pm.response.json();\r",
+									"    var projectName = pm.globals.get(\"projectName\");\r",
+									"    pm.expect(createdProject.name).to.eql(projectName);\r",
+									"    \r",
+									"    pm.globals.set(\"projectId\", createdProject.id);\r",
+									"    pm.globals.set(\"projectOrder\", createdProject.order);\r",
+									" \r",
+									"});\r",
+									"\r",
+									"    "
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set(\"projectName\", \"Projekt na zadanie\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{todoist_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"{{projectName}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{todoist_url}}/projects",
+							"host": [
+								"{{todoist_url}}"
+							],
+							"path": [
+								"projects"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User checks that project has been created",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Correct project name\", function () {\r",
+									"    var project = pm.response.json();\r",
+									"    pm.expect(project.name).to.eql(pm.globals.get(\"projectName\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Correct project id\", function () {\r",
+									"    var project = pm.response.json();\r",
+									"    pm.expect(project.id).to.eql(pm.globals.get(\"projectId\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Correct order value\", function () {\r",
+									"    var project = pm.response.json();\r",
+									"    pm.expect(project.order).to.eql(pm.globals.get(\"projectOrder\"));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 609391a3268ee7262db3e0438413689c1d680f52",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{todoist_url}}/projects/{{projectId}}",
+							"host": [
+								"{{todoist_url}}"
+							],
+							"path": [
+								"projects",
+								"{{projectId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User checks that project is on the list with all projects",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// Pierwszy sposób \r",
+									"//******************************\r",
+									"// pm.test(\"Projects list contains the Project Id\", function () {\r",
+									"//     pm.expect(pm.response.text()).to.include(pm.globals.get(\"projectId\"));\r",
+									"// });\r",
+									"\r",
+									"// pm.test(\"Projects list contains the Project name\", function () {\r",
+									"//     pm.expect(pm.response.text()).to.include(pm.globals.get(\"projectName\"));\r",
+									"// });\r",
+									"\r",
+									"\r",
+									"// Drugi sposób\r",
+									"//************************************\r",
+									"// pm.test(\"Project has correct id\", function () {\r",
+									"//     var allProjects = pm.response.json();\r",
+									"//     var size = allProjects.length;\r",
+									"//     pm.expect(allProjects[size - 1].id).to.eql(pm.globals.get(\"projectId\"));\r",
+									"// });\r",
+									"// pm.test(\"Project has correct name\", function () {\r",
+									"//     var allProjects = pm.response.json();\r",
+									"//     var size = allProjects.length;\r",
+									"//     pm.expect(allProjects[size - 1].name).to.eql(pm.globals.get(\"projectName\"));\r",
+									"// });\r",
+									"\r",
+									"var allProjects = pm.response.json();\r",
+									"var projectToCheck;\r",
+									"allProjects.forEach( function (project){\r",
+									"    console.log(project.id);\r",
+									"\r",
+									"    if (project.id == pm.globals.get(\"projectId\")) {\r",
+									"        /// to sie wykona kiedy warunek zostanie spełniony\r",
+									"        console.log(\"Tak, to ten\");\r",
+									"        projectToCheck = project\r",
+									"\r",
+									"\r",
+									"    } else {\r",
+									"        // wykona sie to\r",
+									"        console.log(\"Szukam dalej\");\r",
+									"    }\r",
+									"})\r",
+									"pm.test(\"Project has correct name\", function () {\r",
+									"    pm.expect(projectToCheck.name).to.eql(pm.globals.get(\"projectName\"));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 609391a3268ee7262db3e0438413689c1d680f52",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{todoist_url}}/projects",
+							"host": [
+								"{{todoist_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User can create new task",
+			"item": [
+				{
+					"name": "User has created project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Project has correct name\", function () {\r",
+									"    // jsonData stores created project details\r",
+									"    var createdProject = pm.response.json();\r",
+									"    var projectName = pm.globals.get(\"projectName\");\r",
+									"    pm.expect(createdProject.name).to.eql(projectName);\r",
+									"    \r",
+									"    pm.globals.set(\"projectId\", createdProject.id);\r",
+									"    pm.globals.set(\"projectOrder\", createdProject.order);\r",
+									" \r",
+									"});\r",
+									"\r",
+									"    "
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.clear();\r",
+									"var randomProductName = pm.variables.replaceIn(\"{{$randomProductName}}\");\r",
+									"pm.globals.set(\"projectName\", randomProductName);\r",
+									"\r",
+									"\r",
+									"var randomPhoneNumber = pm.variables.replaceIn(\"{{$randomPhoneNumber}}\");\r",
+									"\r",
+									"pm.globals.set(\"phoneNumber\", \"+48 \" + randomPhoneNumber);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{todoist_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"{{projectName}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{todoist_url}}/projects",
+							"host": [
+								"{{todoist_url}}"
+							],
+							"path": [
+								"projects"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User adds task to the project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Correct name of task\", function () {\r",
+									"    var createdTask = pm.response.json();\r",
+									"    var taskName = pm.globals.get(\"taskName\");\r",
+									"    pm.expect(createdTask.content).to.eql(taskName);\r",
+									"\r",
+									"    pm.globals.set(\"taskId\", createdTask.id);\r",
+									"    pm.globals.set(\"taskOrder\", createdTask.order);\r",
+									"\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var randomTaskName = pm.variables.replaceIn(\"{{$randomProductMaterial}}\");\r",
+									"pm.globals.set(\"taskName\", randomTaskName);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\": \"{{taskName}}\",\r\n    \"project_id\": \"{{projectId}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{todoist_url}}/tasks",
+							"host": [
+								"{{todoist_url}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User check if task was created",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Correct task name\", function () {\r",
+									"    var task = pm.response.json();\r",
+									"    pm.expect(task.content).to.eql(pm.globals.get(\"taskName\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Correct task id\", function () {\r",
+									"    var task = pm.response.json();\r",
+									"    pm.expect(task.id).to.eql(pm.globals.get(\"taskId\"));\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Correct task order value\", function () {\r",
+									"    var task = pm.response.json();\r",
+									"    pm.expect(task.order).to.eql(pm.globals.get(\"taskOrder\"));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{todoist_url}}/tasks/{{taskId}}",
+							"host": [
+								"{{todoist_url}}"
+							],
+							"path": [
+								"tasks",
+								"{{taskId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User checks if task is on the all tasks list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var allTasks = pm.response.json();\r",
+									"var taskToCheck;\r",
+									"allTasks.forEach( function (task){\r",
+									"    console.log(task.id);\r",
+									"\r",
+									"    if (task.id == pm.globals.get(\"taskId\")) {\r",
+									"        /// to sie wykona kiedy warunek zostanie spełniony\r",
+									"        console.log(\"Tak, to ten\");\r",
+									"        taskToCheck = task\r",
+									"\r",
+									"\r",
+									"    } else {\r",
+									"        // wykona sie to\r",
+									"        console.log(\"Szukam dalej\");\r",
+									"    }\r",
+									"})\r",
+									"pm.test(\"Task has correct name\", function () {\r",
+									"    pm.expect(taskToCheck.content).to.eql(pm.globals.get(\"taskName\"));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{todoist_url}}/tasks/",
+							"host": [
+								"{{todoist_url}}"
+							],
+							"path": [
+								"tasks",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{todoist_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
